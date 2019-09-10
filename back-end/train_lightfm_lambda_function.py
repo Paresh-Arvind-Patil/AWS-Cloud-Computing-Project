@@ -48,32 +48,6 @@ def lambda_handler(event, context):
     food_df.drop(['Portion_Default', 'Portion_Amount','Factor', 'Increment', 'Multiplier', 'Portion_Display_Name', 'Food_Code', 'Display_Name'], axis=1, inplace=True)
     # food_df.head()
     print('Food Dataframe imported')
-
-    # In[4]:
-
-
-    # # TODO: Perform Binning
-    # food_30_bins = ['Alcohol', 'Calories', 'Saturated_Fats']
-    # for each_column in food_30_bins:
-    #     bins = np.linspace(food_df[each_column].min(), food_df[each_column].max(), 30)
-    #     food_df[each_column+'bin'] = pd.cut(food_df[each_column], bins, labels=np.arange(0,len(bins)-1))
-    # food_df
-
-
-    # In[5]:
-
-
-    # for each_column in food_30_bins:
-    #     print(food_df[each_column].min())
-
-
-    # In[6]:
-
-
-    #Get User Dataframe
-    # user_df = pd.read_csv('user_db_try.csv')
-    # user_df.head()
-
     dict_list = []
 
     with connection.cursor() as cur:
@@ -85,17 +59,8 @@ def lambda_handler(event, context):
     user_df = user_rds_df.copy()
     user_df.drop(['cognitoAccessToken','cognitoIDToken', 'cognitoRefreshToken', 'fitbitAccessToken', 'fitbitUserID', 'userName'], axis=1, inplace=True)
     # user_df.head()
-
     print('User Dataframe imported')
-
-
-    # In[7]:
-
-
-    #Get userItem DataFrame
-    # userItem_df = pd.read_csv('userItem_db_try_new.csv')
-    # userItem_df.head()
-
+    
     dict_list = []
 
     with connection.cursor() as cur:
@@ -125,10 +90,8 @@ def lambda_handler(event, context):
     food_features_df = food_df.drop(['food_ID'], axis = 1).copy()
     food_features_dict = food_features_df.to_dict('split')
     # food_features_dict
-
-
+    
     # In[10]:
-
 
     food_feature_values = []
 
@@ -149,22 +112,15 @@ def lambda_handler(event, context):
 
     user_features_dict = user_features_df.to_dict('split')
     # user_features_dict
-
-
     # In[12]:
-
-
     user_feature_values = []
 
     for column_name in user_features_df.columns:
         user_feature_values.extend(user_features_df[column_name].unique())
 
     # user_feature_values
-
-
+    
     # In[13]:
-
-
     user_tuples=[]
     food_tuples=[]
 
@@ -176,10 +132,7 @@ def lambda_handler(event, context):
     
     # food_tuples
 
-
     # In[14]:
-
-
 
     print("Creating LightFm dataset")
     dataset = Dataset()
@@ -188,11 +141,9 @@ def lambda_handler(event, context):
 
     print("Dataset Created")
     # In[15]:
-
-
+    
     num_users, num_items = dataset.interactions_shape()
     print('Num users: {}, num_items {}.'.format(num_users, num_items))
-
 
     # In[16]:
 
@@ -200,13 +151,10 @@ def lambda_handler(event, context):
     # dataset.fit_partial(items=(food_id for food_id in food_df['Food_Code']),
     #                            item_features=((each_feature for each_feature in food_features)for food_features in food_features_dict['data']))
 
-
     # In[17]:
-
 
     # dataset.fit_partial(items=(food_id for food_id in food_df['Food_Code']),
     #                            item_features=((row['Milk'], row['Meats'], row['Alcohol'], row['Calories'])for index,row in food_df.iterrows()))
-
 
     # In[18]:
 
@@ -228,16 +176,10 @@ def lambda_handler(event, context):
     dataset.fit_partial(users=(user_id for user_id in user_df['userID']),
                         user_features=(each_value for each_value in user_feature_values))
 
-
     # In[21]:
-
-
     # dataset.item_features_shape()
     # dataset.user_features_shape()
-
-
     # In[22]:
-
     print("Building Interactions")
     (interactions, weights) = dataset.build_interactions(((x['userID'], x['food_ID'], x['rating'])
                                                           for y,x in userItem_df.iterrows()))
@@ -245,12 +187,9 @@ def lambda_handler(event, context):
     # print(repr(interactions))
     # print(weights)
 
-
     # In[23]:
 
-
     # interactions.shape
-
 
     # In[24]:
 
